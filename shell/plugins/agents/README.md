@@ -56,6 +56,14 @@ light surfaces — and the bar glyph stands in when there is none.
 | `codex` | The Codex app-server RPC, which also supplies the account's daily token totals when the CLI is recent enough | native Codex CLI session files (plus pi and opencode sessions) for the model split, and for the day totals when the app-server has none |
 | `fireworks` | Estimated prepaid balance: configured funding minus rated account costs | Fireworks billing API, grouped by day and model for the last 30 days |
 
+Each section header names the population its numbers describe, so an
+account-wide figure is never read as this machine's tally: limits and
+balances are always `ACCOUNT`, while day and model totals say `ACCOUNT`,
+`THIS MACHINE`, or `N MACHINES` under synced aggregation. A record's
+`"scope"` sets that label, and a collector whose model split is narrower
+than its day totals says so with `"modelUsageScope"` (Codex reads days from
+the account and the model split from local sessions).
+
 Claude limits need a signed-in CLI; without credentials the panel says so and
 falls back to local stats only. A non-default Claude directory is honored via
 `CLAUDE_CONFIG_DIR`, Codex via `CODEX_HOME`. Fireworks reads

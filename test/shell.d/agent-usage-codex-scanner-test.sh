@@ -75,6 +75,8 @@ pass "Codex collector identifies itself with an empty limits list"
 
 [[ $(jq -r '.scope // "device"' <<<"$result") == "device" ]] ||
   fail "Codex collector stays device-scoped when the app-server has no account usage" "$result"
+[[ $(jq -r '.modelUsageScope // "device"' <<<"$result") == "device" ]] ||
+  fail "Codex collector leaves the model split machine-local without account usage" "$result"
 pass "Codex collector stays device-scoped when the app-server has no account usage"
 
 # A current app-server also answers account/usage/read with the account's
@@ -108,6 +110,8 @@ result=$(HOME="$ACCOUNT_HOME" CODEX_HOME="$ACCOUNT_HOME/.codex" XDG_DATA_HOME="$
   fail "Codex collector unions active days from account usage and local sessions" "$result"
 [[ $(jq -r '.scope' <<<"$result") == "account" ]] ||
   fail "Codex collector marks account-wide totals as account-scoped" "$result"
+[[ $(jq -r '.modelUsageScope' <<<"$result") == "device" ]] ||
+  fail "Codex collector keeps the model split labelled machine-local" "$result"
 pass "Codex collector prefers the account's daily token totals over the local scan"
 
 # Pi and omp can both spend a Codex subscription without creating native

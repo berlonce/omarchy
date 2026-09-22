@@ -269,6 +269,15 @@ Item {
       hasLocalStats: synced ? (stats.hasLocalStats !== false) : (record.hasLocalStats !== false),
       hasPromptStats: synced ? (stats.hasPromptStats !== false) : (record.hasPromptStats !== false),
 
+      // Which population each stat family describes, for the panel's section
+      // headers: "account" is the provider's own account-wide figure,
+      // "device" is what sessions on this machine add up to, and "synced" is
+      // the merge of every machine's snapshot. A collector may scope its
+      // model split apart from its day totals, the way Codex reads days from
+      // the account and the model split from local sessions.
+      daysScope: synced ? "synced" : String(record.scope || "device"),
+      modelUsageScope: synced ? "synced" : String(record.modelUsageScope || record.scope || "device"),
+
       syncEnabled: synced,
       syncDeviceCount: deviceCount,
       syncUpdatedAt: aggregateData && aggregateData.updatedAt ? aggregateData.updatedAt : ""

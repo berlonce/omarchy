@@ -548,6 +548,9 @@ def apply_account_usage(record, daily):
   record["activeDates"] = sorted(active)
   record["activeDays"] = len(active)
   record["scope"] = "account"
+  # The day totals are account-wide, but the model split is still whatever
+  # this machine's sessions hold, and the panel labels the two separately.
+  record["modelUsageScope"] = "device"
 
 
 def fetch_codex_rpc():
