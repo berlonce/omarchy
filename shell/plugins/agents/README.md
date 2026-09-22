@@ -53,7 +53,7 @@ light surfaces — and the bar glyph stands in when there is none.
 | Collector | Limits | Local stats |
 |---|---|---|
 | `claude` | Anthropic's OAuth usage endpoint (5-hour session + 7-day weekly) | `~/.claude/projects` transcripts, opencode sessions on an Anthropic provider, plus `stats-cache.json` and `history.jsonl` as fallback |
-| `codex` | The Codex app-server RPC | native Codex CLI session files (plus pi and opencode sessions) |
+| `codex` | The Codex app-server RPC, which also supplies the account's daily token totals when the CLI is recent enough | native Codex CLI session files (plus pi and opencode sessions) for the model split, and for the day totals when the app-server has none |
 | `fireworks` | Estimated prepaid balance: configured funding minus rated account costs | Fireworks billing API, grouped by day and model for the last 30 days |
 
 Claude limits need a signed-in CLI; without credentials the panel says so and
@@ -141,7 +141,8 @@ the last 7 days, and the all-time totals cover every machine you code on —
 active days are unioned by date rather than summed. Rate limits stay
 per-account and are never merged. A record may declare `"scope": "account"`
 when its stats are account-global rather than machine-local (Fireworks'
-billing API); those merge by taking the widest value instead of summing, so
+billing API, and Codex once its app-server reports the account's daily
+totals); those merge by taking the widest value instead of summing, so
 the same account synced from two machines is not counted twice.
 
 One caveat on "all-time": the Codex collector only reads native session files
