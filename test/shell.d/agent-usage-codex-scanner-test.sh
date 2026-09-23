@@ -73,18 +73,17 @@ pass "Codex collector does not double-count cache or reasoning tokens"
   fail "Codex collector identifies itself with an empty limits list" "$result"
 pass "Codex collector identifies itself with an empty limits list"
 
-[[ $(jq -r '.scope // "device"' <<<"$result") == "device" ]] ||
+[[ $(jq -c '[.scope, .daysScope, .modelUsageScope]' <<<"$result") == '[null,null,null]' ]] ||
   fail "Codex collector stays device-scoped when the app-server has no account usage" "$result"
-[[ $(jq -r '.modelUsageScope // "device"' <<<"$result") == "device" ]] ||
-  fail "Codex collector leaves the model split machine-local without account usage" "$result"
 pass "Codex collector stays device-scoped when the app-server has no account usage"
 
 # A current app-server also answers account/usage/read with the account's
 # daily token totals. OpenAI records those per account, so they cover Codex on
 # every device and replace the machine-local day figures; the model split has
-# no account counterpart and stays local. The record turns account-scoped so
-# synced snapshots take the widest value instead of summing one copy of the
-# same totals per machine.
+# no account counterpart and stays local. Only the day totals turn
+# account-scoped, so synced snapshots take the widest value for them instead
+# of summing one copy of the same totals per machine, while the locally
+# scanned families keep adding up across machines.
 ACCOUNT_HOME=$(mktemp -d)
 trap 'rm -rf "$TEST_HOME" "$ACCOUNT_HOME"' EXIT
 mkdir -p "$ACCOUNT_HOME/bin" "$ACCOUNT_HOME/.codex/sessions/$(date +%Y/%m/%d)"
@@ -108,10 +107,10 @@ result=$(HOME="$ACCOUNT_HOME" CODEX_HOME="$ACCOUNT_HOME/.codex" XDG_DATA_HOME="$
   fail "Codex collector keeps the model split from local sessions" "$result"
 [[ $(jq -r '.activeDays' <<<"$result") == "3" && $(jq -r --arg d "$last_month" '.activeDates | index($d) != null' <<<"$result") == "true" ]] ||
   fail "Codex collector unions active days from account usage and local sessions" "$result"
-[[ $(jq -r '.scope' <<<"$result") == "account" ]] ||
-  fail "Codex collector marks account-wide totals as account-scoped" "$result"
-[[ $(jq -r '.modelUsageScope' <<<"$result") == "device" ]] ||
-  fail "Codex collector keeps the model split labelled machine-local" "$result"
+[[ $(jq -r '.daysScope' <<<"$result") == "account" ]] ||
+  fail "Codex collector marks the day totals as account-scoped" "$result"
+[[ $(jq -c '[.scope, .modelUsageScope]' <<<"$result") == '[null,null]' ]] ||
+  fail "Codex collector keeps the record and its model split machine-local" "$result"
 pass "Codex collector prefers the account's daily token totals over the local scan"
 
 # Pi and omp can both spend a Codex subscription without creating native

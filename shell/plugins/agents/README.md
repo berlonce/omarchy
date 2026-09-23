@@ -60,9 +60,10 @@ Each section header names the population its numbers describe, so an
 account-wide figure is never read as this machine's tally: limits and
 balances are always `ACCOUNT`, while day and model totals say `ACCOUNT`,
 `THIS MACHINE`, or `N MACHINES` under synced aggregation. A record's
-`"scope"` sets that label, and a collector whose model split is narrower
-than its day totals says so with `"modelUsageScope"` (Codex reads days from
-the account and the model split from local sessions).
+`"scope"` sets that label for everything it holds, and a collector may scope
+one family apart from the rest with `"daysScope"` or `"modelUsageScope"`
+(Codex reads its day totals from the account and everything else from local
+sessions, so it declares `"daysScope": "account"` and nothing more).
 
 Claude limits need a signed-in CLI; without credentials the panel says so and
 falls back to local stats only. A non-default Claude directory is honored via
@@ -149,9 +150,14 @@ the last 7 days, and the all-time totals cover every machine you code on —
 active days are unioned by date rather than summed. Rate limits stay
 per-account and are never merged. A record may declare `"scope": "account"`
 when its stats are account-global rather than machine-local (Fireworks'
-billing API, and Codex once its app-server reports the account's daily
-totals); those merge by taking the widest value instead of summing, so
-the same account synced from two machines is not counted twice.
+billing API), or scope one family that way with `"daysScope"` or
+`"modelUsageScope"` (Codex day totals once its app-server reports them).
+Account-scoped figures merge by taking the widest value instead of summing,
+so the same account synced from two machines is not counted twice, while
+the machine-local families of the same record keep adding up. Where one
+machine reports an account figure and another only its local share, the
+account figure wins, since it already covers that machine, whichever order
+the snapshots are read in.
 
 One caveat on "all-time": the Codex collector only reads native session files
 touched in the last 30 days, and Fireworks requests the last 30 days from its

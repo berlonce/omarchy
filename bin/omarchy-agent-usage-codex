@@ -538,19 +538,21 @@ def apply_account_usage(record, daily):
 
   OpenAI records usage per account, so these cover Codex on every device the
   user signs into, not just sessions stored here. The endpoint carries no
-  model split, so per-model usage stays local. Marking the record
-  account-scoped makes synced aggregation take the widest value instead of
-  summing the same account totals once per machine.
+  model split, so per-model usage stays local. Scoping just the day totals
+  to the account makes synced aggregation take the widest value for them
+  instead of summing the same numbers once per machine, while the locally
+  scanned families keep adding up.
   """
   record["recentDays"] = [{"date": day, "messageCount": daily.get(day, 0)} for day in recent_dates]
   record["todayTotalTokens"] = daily.get(today, 0)
   active = set(record.get("activeDates") or []) | {day for day, tokens in daily.items() if tokens > 0}
   record["activeDates"] = sorted(active)
   record["activeDays"] = len(active)
-  record["scope"] = "account"
-  # The day totals are account-wide, but the model split is still whatever
-  # this machine's sessions hold, and the panel labels the two separately.
-  record["modelUsageScope"] = "device"
+  # Only the day totals are account-wide. The model split and the prompt and
+  # session counts are still whatever this machine's sessions hold, so the
+  # record itself stays device-scoped and synced aggregation keeps adding
+  # those across machines while deduplicating the account totals.
+  record["daysScope"] = "account"
 
 
 def fetch_codex_rpc():
